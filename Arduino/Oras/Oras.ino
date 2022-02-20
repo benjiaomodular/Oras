@@ -38,14 +38,9 @@ int min_time = ((1 / (max_bpm / 60)) * 1000);
 
 // Pattern variables
 File pattern_file;
-int  pattern_length = 0;
-char pattern_char;
-int  pattern_column = 0;
-
-bool pattern_a[128];
-bool pattern_b[128];
-bool pattern_c[128];
-
+char pattern_char1;
+char pattern_char2;
+char pattern_char3;
 
 void setup() {
   Serial.begin(9600);
@@ -86,39 +81,9 @@ void load_pattern(String filename){
 
   if (pattern_file) {
     Serial.println(filename);
-
-    // Get pattern length
-    while (pattern_file.available() and pattern_length < 128) {
-      pattern_char = pattern_file.read();
-
-      switch (pattern_column){
-        case 0:
-          pattern_a[pattern_length] = (pattern_char == '1') ? true : false;
-          pattern_column++;
-          break;
-        case 1:
-          pattern_b[pattern_length] = (pattern_char == '1') ? true : false;
-          pattern_column++;
-          break;
-        case 2:
-          pattern_c[pattern_length] = (pattern_char == '1') ? true : false;
-          pattern_column++;
-          break;
-        case 3:
-          pattern_column = 0;
-          pattern_length = pattern_length + 1;
-          break;
-      }
-    }
-
-    pattern_file.close();
-    Serial.print("Pattern length: ");
-    Serial.println(pattern_length);
-
   } else {
     Serial.println("error opening file");
   }
-
 }
 
 
@@ -127,19 +92,25 @@ void cycle_off() {
   digitalWrite(OUT_PIN2, LOW);
   digitalWrite(OUT_PIN3, LOW);
   digitalWrite(OUT_PIN4, LOW);
-
-  count++;
-  if (count == pattern_length) {
-    count = 0;
-  }
 }
 
 void cycle_on() {
 
   digitalWrite(OUT_PIN1, HIGH);
-  if (pattern_a[count]) digitalWrite(OUT_PIN2, HIGH);
-  if (pattern_b[count]) digitalWrite(OUT_PIN3, HIGH);
-  if (pattern_c[count]) digitalWrite(OUT_PIN4, HIGH);
+
+  // Read three columns
+  pattern_char1 = pattern_file.read();
+  pattern_char2 = pattern_file.read();
+  pattern_char3 = pattern_file.read();
+
+  // Read new line
+  pattern_file.read();
+
+  if (pattern_char1 == '1') digitalWrite(OUT_PIN2, HIGH);
+  if (pattern_char2 == '1') digitalWrite(OUT_PIN3, HIGH);
+  if (pattern_char3 == '1') digitalWrite(OUT_PIN4, HIGH);
+
+  if (!pattern_file.available()) pattern_file.seek(0);
 
   int input_speed    = analogRead(A0);
   int input_duration = analogRead(A1);
