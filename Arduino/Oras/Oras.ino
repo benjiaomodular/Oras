@@ -30,8 +30,8 @@ int count = 0;
 bool started = false;
 int time_actual;
 float bpm; 
-const float max_bpm = 350;
-const float min_bpm = 4;
+const float max_bpm = 500;
+const float min_bpm = 30;
 int max_time = ((1 / (min_bpm / 60)) * 1000);
 int min_time = ((1 / (max_bpm / 60)) * 1000);
 
