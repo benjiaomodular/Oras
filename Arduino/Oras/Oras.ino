@@ -1,4 +1,3 @@
-#include <SimpleTimer.h>
 #include <SPI.h>
 #include <SD.h>
 
@@ -24,7 +23,6 @@ const int PROGMEM OUT_PIN2 = 6;
 const int PROGMEM OUT_PIN3 = 7;
 const int PROGMEM OUT_PIN4 = 8;
 
-SimpleTimer timer;
 int count = 0;
 
 bool started = false;
@@ -49,22 +47,27 @@ void setup() {
   pinMode(OUT_PIN3, OUTPUT);
   pinMode(OUT_PIN4, OUTPUT);
 
-  while (!Serial) {}
+//  while (!Serial) {}
   load_pattern("default.txt");
 }
 
 void loop() {
-  
-  if (!started) {
-    cycle_on();
-    started = true;
-  }
-  
-  timer.run();
-  time_actual = millis ();
+  int input_speed    = analogRead(A0);
+  int input_duration = analogRead(A1);
 
-//  Serial.print(" BPM: ");
-//  Serial.println(bpm);
+  bpm = map(input_speed, 0, 1023, min_bpm, max_bpm); 
+
+  float duration_percentage =  map(input_duration, 0, 1023, 1, 90);
+
+  int cycletime = (60000 / bpm); 
+  float cycle_start = cycletime;
+  float cycle_stop = (cycletime * (duration_percentage / 100));
+
+  cycle_on();
+  delay(cycle_stop);
+  cycle_off();
+  delay(cycle_start);
+
 }
 
 
@@ -96,33 +99,17 @@ void cycle_off() {
 
 void cycle_on() {
 
-  digitalWrite(OUT_PIN1, HIGH);
-
   // Read three columns
   pattern_char1 = pattern_file.read();
   pattern_char2 = pattern_file.read();
   pattern_char3 = pattern_file.read();
-
   // Read new line
-  pattern_file.read();
+  pattern_file.read(); 
+  
+  if (!pattern_file.available()) pattern_file.seek(0);
 
+  digitalWrite(OUT_PIN1, HIGH);
   if (pattern_char1 == '1') digitalWrite(OUT_PIN2, HIGH);
   if (pattern_char2 == '1') digitalWrite(OUT_PIN3, HIGH);
   if (pattern_char3 == '1') digitalWrite(OUT_PIN4, HIGH);
-
-  if (!pattern_file.available()) pattern_file.seek(0);
-
-  int input_speed    = analogRead(A0);
-  int input_duration = analogRead(A1);
-
-  bpm = map(input_speed, 0, 1023, min_bpm, max_bpm); 
-
-  float duration_percentage =  map(input_duration, 0, 1023, 1, 90);
-
-  int cycletime = (60000 / bpm); 
-  float cycle_start = cycletime;
-  float cycle_stop = (cycletime * (duration_percentage / 100));
-
-  timer.setTimeout(cycle_start, cycle_on);
-  timer.setTimeout(cycle_stop, cycle_off);
 }
