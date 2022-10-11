@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "Oras-rescue")(type "Legacy")(uri "${KIPRJMOD}/Oras-rescue.lib")(options "")(descr ""))
+)
